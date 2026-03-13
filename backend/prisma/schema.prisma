@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  email     String    @unique
+  password  String
+  rol       String    @default("viewer")
+  activo    Boolean   @default(true)
+  equipos   Equipo[]
+  materias  Materia[] @relation("MateriaProfesor")
+  createdAt DateTime  @default(now())
+}
+model Materia {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  codigo      String   @unique
+  profesorId  Int?
+  profesor    Usuario? @relation("MateriaProfesor", fields: [profesorId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Equipo {
+  id             Int             @id @default(autoincrement())
+  codigo         String          @unique
+  descripcion    String
+  categoria      String
+  ubicacion      String
+  estado         String          @default("Disponible")
+  encargadoId    Int?
+  encargado      Usuario?        @relation(fields: [encargadoId], references: [id])
+  prestadoA      String?
+  prestamos      Prestamo[]
+  mantenimientos Mantenimiento[]
+  createdAt      DateTime        @default(now())
+}
+
+model Prestamo {
+  id          Int      @id @default(autoincrement())
+  equipoId    Int
+  equipo      Equipo   @relation(fields: [equipoId], references: [id])
+  solicitante String
+  fechaSalida DateTime
+  fechaRetorno DateTime
+  estado      String   @default("Activo") // Activo | Devuelto | Vencido
+  notas       String?
+  createdAt   DateTime @default(now())
+}
+
+model Mantenimiento {
+  id        Int      @id @default(autoincrement())
+  equipoId  Int
+  equipo    Equipo   @relation(fields: [equipoId], references: [id])
+  tipo      String
+  descripcion String
+  fecha     DateTime
+  tecnico   String
+  proxima   DateTime?
+}
+
+model Insumo {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  referencia String   @unique
+  cantidad   Int
+  minimo     Int      @default(5)
+  unidad     String
+  ubicacion  String
+}
+
+model Reserva {
+  id          Int      @id @default(autoincrement())
+  recurso     String
+  solicitante String
+  fecha       DateTime
+  horaInicio  String
+  horaFin     String
+  estado      String   @default("Pendiente")
+}
